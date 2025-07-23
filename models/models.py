@@ -9,10 +9,11 @@ from src.database.models.base import Base
 
 class UserStatus(enum.Enum):
     NEW = "new"
-    VERIFIED = "verified"
-    OPEN = "open"
-    BANNED = "banned"
-    UPDATED = "updated"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    NEW_CHANGES = "new_changes"
+    BANNED = "ban"
+    DELETED = "deleted"
 
 
 
@@ -20,6 +21,8 @@ class Specialist(Base):
     __tablename__ = 'specialists'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    status: Mapped[UserStatus] = mapped_column(SqlEnum(UserStatus),default=UserStatus.NEW)  # new verified sent ban updated
+    message_to_user: Mapped[str] = mapped_column(String(300), nullable=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     phone: Mapped[str] = mapped_column(String(15), nullable=False)
     email: Mapped[str] = mapped_column(String(50), nullable=True)
@@ -29,9 +32,8 @@ class Specialist(Base):
     photo_local: Mapped[str] = mapped_column(String(300), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    status: Mapped[UserStatus] = mapped_column(SqlEnum(UserStatus), default=UserStatus.NEW)    # new verified sent ban updated
     ban_reason: Mapped[str] = mapped_column(String(300), nullable=True)
-    verified: Mapped[bool] = mapped_column(default=False)
+
 
     def __repr__(self):
         return f"Specialist: {self.name} status: {self.status} created_at: {self.created_at}"
