@@ -58,16 +58,17 @@ class ModerateData(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     status: Mapped[ModerateStatus] = mapped_column(SqlEnum(ModerateStatus), default=ModerateStatus.NEW)
     message_to_user: Mapped[str] = mapped_column(String(300), nullable=True)
-    name: Mapped[str] = mapped_column(String(30), nullable=False,)
-    phone: Mapped[str] = mapped_column(String(15), nullable=False)
+    name: Mapped[str] = mapped_column(String(30), nullable=True)
+    phone: Mapped[str] = mapped_column(String(15), nullable=True)
     telegram: Mapped[str] = mapped_column(String(50), nullable=True)
     email: Mapped[str] = mapped_column(String(50), nullable=True)
-    specialty: Mapped[str] = mapped_column(String(100), nullable=False)
-    about: Mapped[str] = mapped_column(Text, nullable=False)
+    specialty: Mapped[str] = mapped_column(String(100), nullable=True)
+    about: Mapped[str] = mapped_column(Text, nullable=True)
     photo_telegram: Mapped[str] = mapped_column(String(300), nullable=True)
     photo_local: Mapped[str] = mapped_column(String(300), nullable=True)
     updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     ban_reason: Mapped[str] = mapped_column(String(300), nullable=True)
+    message_to_admin: Mapped[str] = mapped_column(String(700), nullable=True)
 
 
     def __repr__(self):
