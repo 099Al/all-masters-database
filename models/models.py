@@ -12,7 +12,7 @@ class UserStatus(enum.Enum):
     ACTIVE = "active"
     BANNED = "ban"
 
-class UserMoerateResult(enum.Enum):
+class UserModerateResult(enum.Enum):
     NEW_CHANGES = "new"
     APPROVED = "approved"
     BANNED = "ban"
@@ -35,7 +35,7 @@ class Specialist(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     status: Mapped[UserStatus] = mapped_column(SqlEnum(UserStatus), default=UserStatus.NEW)
-    moderate_result: Mapped[UserMoerateResult] = mapped_column(SqlEnum(UserMoerateResult), nullable=True)
+    moderate_result: Mapped[UserModerateResult] = mapped_column(SqlEnum(UserModerateResult), nullable=True)
     message_to_user: Mapped[str] = mapped_column(String(300), nullable=True)
     name: Mapped[str] = mapped_column(String(30), nullable=False,  default='на модерации')
     phone: Mapped[str] = mapped_column(String(15), nullable=False,  default='на модерации')
