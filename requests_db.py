@@ -2,7 +2,7 @@ from sqlalchemy.future import select
 
 from src.database.connect import DataBase
 from src.database.models import Specialist, ModerateData
-
+from sqlalchemy import update
 
 class ReqData:
     def __init__(self):
@@ -38,3 +38,11 @@ class ReqData:
             res = result.scalars().first()
 
         return res
+
+    async def update_specialist(self, user_id, **data):
+        async with self.session() as session:
+            await session.execute(
+                update(Specialist)
+                .where(Specialist.id == user_id)
+                .values(**data)
+            )
