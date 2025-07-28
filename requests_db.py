@@ -1,7 +1,7 @@
 from sqlalchemy.future import select
 
 from src.database.connect import DataBase
-from src.database.models import Specialist
+from src.database.models import Specialist, ModerateData
 
 
 class ReqData:
@@ -24,6 +24,16 @@ class ReqData:
             result = await session.execute(
                 select(Specialist)
                 .where(Specialist.id == user_id)
+            )
+            res = result.scalars().first()
+
+        return res
+
+    async def get_moderate_date(self, user_id):
+        async with self.session() as session:
+            result = await session.execute(
+                select(ModerateData)
+                .where(ModerateData.id == user_id)
             )
             res = result.scalars().first()
 
