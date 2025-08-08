@@ -1,8 +1,14 @@
-from sqlalchemy.future import select
+from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import select, func
+
+from src.config_paramaters import UTC_PLUS_5
 from src.database.connect import DataBase
-from src.database.models import Specialist, ModerateData
+from src.database.models import Specialist, ModerateData, ModerateLog
 from sqlalchemy import update
+
+
+
 
 class ReqData:
     def __init__(self):
@@ -46,3 +52,18 @@ class ReqData:
                 .where(Specialist.id == user_id)
                 .values(**data)
             )
+            await session.commit()
+
+    async def get_cnt_edit_request(self, user_id):
+        async with self.session() as session:
+            result = await session.execute(
+                select(func.count())
+                .select_from(ModerateLog)
+                .where(
+                    ModerateLog.user_id == user_id,
+                    ModerateLog.updated_at >= (datetime.now(UTC_PLUS_5) - timedelta(hours=1)).replace(tzinfo=None)
+                )
+            )
+            count = result.scalar_one()
+
+        return count
