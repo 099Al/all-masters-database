@@ -81,6 +81,6 @@ class ModerateData(Base):
 class ModerateLog(Base):
     __tablename__ = 'moderate_log'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(primary_key=True)
     updated_at: Mapped[DateTime] = mapped_column(DateTime, primary_key=True, nullable=False)
 
