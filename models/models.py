@@ -5,20 +5,13 @@ import os
 import enum
 from sqlalchemy import Enum as SqlEnum
 
+from src.config_paramaters import UTC_PLUS_5
 from src.database.models.base import Base
 
 class UserStatus(enum.Enum):
     NEW = "new"
     ACTIVE = "active"
-    BANNED = "ban"
-
-class UserModerateResult(enum.Enum):
-    NEW_CHANGES = "new"
-    APPROVED = "approved"
-    BANNED = "ban"
-    DELETED = "deleted"
-    REJECTED = "rejected"
-    DELAY = "delay"
+    BANNED = "banned"
 
 
 class ModerateStatus(enum.Enum):
@@ -26,16 +19,17 @@ class ModerateStatus(enum.Enum):
     APPROVED = "approved"
     REJECTED = "rejected"
     NEW_CHANGES = "new_changes"
-    BANNED = "ban"
+    BANNED = "banned"
     PERMANENTLY_BANNED = "permanently_banned"
     DELETED = "deleted"
+    DELAY = "delay"
 
 class Specialist(Base):
     __tablename__ = 'specialists'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     status: Mapped[UserStatus] = mapped_column(SqlEnum(UserStatus), default=UserStatus.NEW)
-    moderate_result: Mapped[UserModerateResult] = mapped_column(SqlEnum(UserModerateResult), nullable=True)
+    moderate_result: Mapped[ModerateStatus] = mapped_column(SqlEnum(ModerateStatus), nullable=True)
     message_to_user: Mapped[str] = mapped_column(String(300), nullable=True)
     name: Mapped[str] = mapped_column(String(30), nullable=False,  default='на модерации')
     phone: Mapped[str] = mapped_column(String(15), nullable=False,  default='на модерации')
@@ -83,4 +77,26 @@ class ModerateLog(Base):
 
     user_id: Mapped[int] = mapped_column(primary_key=True)
     updated_at: Mapped[DateTime] = mapped_column(DateTime, primary_key=True, nullable=False)
+
+
+class HistoryUsers(Base):
+    __tablename__ = 'history_users'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(30), nullable=False)
+    phone: Mapped[str] = mapped_column(String(15), nullable=False)
+    telegram: Mapped[str] = mapped_column(String(50), nullable=True)
+    email: Mapped[str] = mapped_column(String(50), nullable=True)
+    specialty: Mapped[str] = mapped_column(String(100), nullable=True)
+    photo_telegram: Mapped[str] = mapped_column(String(300), nullable=True)
+    photo_local: Mapped[str] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    deleted_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+
+
+
+
+
+
+
 

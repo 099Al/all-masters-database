@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, text
 
 from src.config_paramaters import UTC_PLUS_5
 from src.database.connect import DataBase
@@ -67,3 +67,9 @@ class ReqData:
             count = result.scalar_one()
 
         return count
+
+
+    async def call_update_statuses(self):
+        async with self.session() as session:
+            await session.execute(text("CALL update_statuses();"))
+            await session.commit()
