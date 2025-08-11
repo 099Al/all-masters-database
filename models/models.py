@@ -112,7 +112,7 @@ class HistoryUsers(Base):
 class Category(Base):
     __tablename__ = "categories"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
 
     r_services = relationship("Service", back_populates="r_category", cascade="all, delete-orphan")
@@ -130,7 +130,7 @@ class Service(Base):
     __tablename__ = "services"
     __table_args__ = (UniqueConstraint("name", "category_id"),)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
 
@@ -149,7 +149,7 @@ class WorkType(Base):
     __tablename__ = "work_types"
     __table_args__ = (UniqueConstraint("name", "service_id"),)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
     service_id = Column(Integer, ForeignKey("services.id"), nullable=True)
