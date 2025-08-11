@@ -36,10 +36,12 @@ UPDATE SET
     phone = md.phone,
     telegram = md.telegram,
     email = md.email,
-    specialty = md.specialty,
+    services = md.services,
     about = md.about,
     photo_telegram = md.photo_telegram,
     photo_local = md.photo_local,
+    l_services = md.l_services,
+    l_work_types = md.l_work_types,
     updated_at = CURRENT_TIMESTAMP;
 
 MERGE INTO specialists s
