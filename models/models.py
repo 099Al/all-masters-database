@@ -1,9 +1,12 @@
+from typing import List
+
 from sqlalchemy import (
     String, Float, Integer, Text, Date, DateTime, Boolean,
     ForeignKey,  Table, Column,
     CheckConstraint, Enum, UniqueConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import JSONB
 import os
 import enum
 from sqlalchemy import Enum as SqlEnum
@@ -45,19 +48,11 @@ class Specialist(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     ban_reason: Mapped[str] = mapped_column(String(300), nullable=True)
-    #cagtegory_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id"), nullable=True)
+    l_services: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
+    l_work_types: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
 
-    #category = relationship("Category", back_populates="specialists")
-    # services = relationship(
-    #     "Service",
-    #     secondary="specialist_services",
-    #     back_populates="specialists"
-    # )
-    # work_types = relationship(
-    #     "WorkType",
-    #     secondary="specialist_work_types",
-    #     back_populates="specialists"
-    # )
+    r_services = relationship("Service", secondary="specialist_services", back_populates="r_specialists")
+    r_work_types = relationship("WorkType", secondary="specialist_work_types", back_populates="r_specialists")
 
     def __repr__(self):
         return f"Specialist: {self.name} status: {self.status} created_at: {self.created_at}"
@@ -81,7 +76,8 @@ class ModerateData(Base):
     updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     ban_reason: Mapped[str] = mapped_column(String(300), nullable=True)
     message_to_admin: Mapped[str] = mapped_column(String(700), nullable=True)
-    #cagtegory_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id"), nullable=True)
+    l_services: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
+    l_work_types: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
 
 
     def __repr__(self):
@@ -113,63 +109,59 @@ class HistoryUsers(Base):
 
 
 
-# class Category(Base):
-#     __tablename__ = "categories"
-#
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-#
-#     services = relationship("Service", back_populates="category", cascade="all, delete-orphan")
-#     work_types = relationship("WorkType", back_populates="category", cascade="all, delete-orphan")
-#     specialists = relationship("Specialist", back_populates="category", cascade="all, delete-orphan")
-#
-# class Service(Base):
-#     __tablename__ = "services"
-#     __table_args__ = (UniqueConstraint("name", "category_id"),)
-#
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     name: Mapped[str] = mapped_column(String(100), nullable=False)
-#     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
-#
-#     category = relationship("Category", back_populates="services")
-#     work_types = relationship("WorkType", back_populates="services")
-#     specialists = relationship(
-#         "Specialist",
-#         secondary="specialist_services",
-#         back_populates="services"
-#     )
-#
-#
-# class WorkType(Base):
-#     __tablename__ = "work_types"
-#     __table_args__ = (UniqueConstraint("name", "service_id"),)
-#
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     name: Mapped[str] = mapped_column(String(100), nullable=False)
-#     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
-#     service_id = Column(Integer, ForeignKey("services.id"), nullable=True)
-#
-#
-#     category = relationship("Category", back_populates="work_types")
-#     services = relationship("Service", back_populates="work_types")
-#     specialists = relationship(
-#         "Specialist",
-#         secondary="specialist_work_types",
-#         back_populates="work_types"
-#     )
-#
-# class SpecialistService(Base):
-#     __tablename__ = "specialist_services"
-#
-#     specialist_id = Column(Integer, ForeignKey("specialists.id"), primary_key=True)
-#     service_id = Column(Integer, ForeignKey("services.id"), primary_key=True)
-#
-#
-# class SpecialistWorkType(Base):
-#     __tablename__ = "specialist_work_types"
-#
-#     specialist_id = Column(Integer, ForeignKey("specialists.id"), primary_key=True)
-#     work_type_id = Column(Integer, ForeignKey("work_types.id"), primary_key=True)
+class Category(Base):
+    __tablename__ = "categories"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+
+    r_services = relationship("Service", back_populates="r_category", cascade="all, delete-orphan")
+    r_work_types = relationship("WorkType", back_populates="r_category", cascade="all, delete-orphan")
+
+
+class SpecialistService(Base):
+    __tablename__ = "specialist_services"
+
+    specialist_id = Column(Integer, ForeignKey("specialists.id"), primary_key=True)
+    service_id = Column(Integer, ForeignKey("services.id"), primary_key=True)
+
+
+class Service(Base):
+    __tablename__ = "services"
+    __table_args__ = (UniqueConstraint("name", "category_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
+
+    r_category = relationship("Category", back_populates="r_services")
+    r_specialists = relationship("Specialist", secondary="specialist_services", back_populates="r_services")
+    r_work_types = relationship("WorkType", back_populates="r_services")
+
+
+class SpecialistWorkType(Base):
+    __tablename__ = "specialist_work_types"
+
+    specialist_id = Column(Integer, ForeignKey("specialists.id"), primary_key=True)
+    work_type_id = Column(Integer, ForeignKey("work_types.id"), primary_key=True)
+
+class WorkType(Base):
+    __tablename__ = "work_types"
+    __table_args__ = (UniqueConstraint("name", "service_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
+    service_id = Column(Integer, ForeignKey("services.id"), nullable=True)
+
+
+    r_category = relationship("Category", back_populates="r_work_types")
+    r_services = relationship("Service", back_populates="r_work_types")
+    r_specialists = relationship("Specialist", secondary="specialist_work_types", back_populates="r_work_types")
+
+
+
+
 
 
 
