@@ -52,7 +52,6 @@ class Specialist(Base):
     l_work_types: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
 
     r_services = relationship("Service", secondary="specialist_services", back_populates="r_specialists")
-    r_work_types = relationship("WorkType", secondary="specialist_work_types", back_populates="r_specialists")
 
     def __repr__(self):
         return f"Specialist: {self.name} status: {self.status} created_at: {self.created_at}"
@@ -78,6 +77,8 @@ class ModerateData(Base):
     message_to_admin: Mapped[str] = mapped_column(String(700), nullable=True)
     l_services: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
     l_work_types: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
+
+    r_services = relationship("Service", secondary="moderatedata_services", backref="r_moderate_data")
 
 
     def __repr__(self):
@@ -114,9 +115,12 @@ class Category(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    is_new: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     r_services = relationship("Service", back_populates="r_category", cascade="all, delete-orphan")
-    r_work_types = relationship("WorkType", back_populates="r_category", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"{self.id}: {self.name}"
 
 
 class SpecialistService(Base):
@@ -124,6 +128,20 @@ class SpecialistService(Base):
 
     specialist_id = Column(Integer, ForeignKey("specialists.id"), primary_key=True)
     service_id = Column(Integer, ForeignKey("services.id"), primary_key=True)
+
+    def __repr__(self):
+        return f"{self.specialist_id}: {self.service_id}"
+
+
+class ModerateService(Base):
+    __tablename__ = "moderatedata_services"
+
+    specialist_id = Column(Integer, ForeignKey("moderate_data.id"), primary_key=True)
+    service_id = Column(Integer, ForeignKey("services.id"), primary_key=True)
+
+
+    def __repr__(self):
+        return f"{self.specialist_id}: {self.service_id}"
 
 
 class Service(Base):
@@ -133,33 +151,13 @@ class Service(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
+    is_new: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     r_category = relationship("Category", back_populates="r_services")
     r_specialists = relationship("Specialist", secondary="specialist_services", back_populates="r_services")
-    r_work_types = relationship("WorkType", back_populates="r_services")
 
-
-class SpecialistWorkType(Base):
-    __tablename__ = "specialist_work_types"
-
-    specialist_id = Column(Integer, ForeignKey("specialists.id"), primary_key=True)
-    work_type_id = Column(Integer, ForeignKey("work_types.id"), primary_key=True)
-
-class WorkType(Base):
-    __tablename__ = "work_types"
-    __table_args__ = (UniqueConstraint("name", "service_id"),)
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
-    service_id = Column(Integer, ForeignKey("services.id"), nullable=True)
-
-
-    r_category = relationship("Category", back_populates="r_work_types")
-    r_services = relationship("Service", back_populates="r_work_types")
-    r_specialists = relationship("Specialist", secondary="specialist_work_types", back_populates="r_work_types")
-
-
+    def __repr__(self):
+        return f"{self.name} - category_id: {self.category_id}"
 
 
 
