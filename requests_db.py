@@ -4,7 +4,7 @@ from sqlite3 import IntegrityError
 
 from sqlalchemy import select, func, text, or_
 
-from src.config_paramaters import UTC_PLUS_5
+from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
 from src.database.api_gpt import define_category_from_specialties
 from src.database.connect import DataBase
 from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service
@@ -169,7 +169,7 @@ class ReqData:
 
     async def get_or_create_category(self,
             category_name: str,
-            threshold: float = 0.4
+            threshold: float = SIMILARITY_THRESHOLD
     ):
         """
         Ищет категорию по смысловой близости (similarity).
@@ -205,7 +205,7 @@ class ReqData:
             self,
             service_name: str,
             category_id: int,
-            threshold: float = 0.4
+            threshold: float = SIMILARITY_THRESHOLD
     ):
         """
         Ищет услугу по смысловой близости (similarity) внутри категории.
@@ -240,7 +240,7 @@ class ReqData:
                 result = await session.execute(stmt)
                 return result.scalar_one()
 
-    async def get_or_create_services(self, service_names: list[str], category_id: int, threshold: float = 0.4):
+    async def get_or_create_services(self, service_names: list[str], category_id: int, threshold: float = SIMILARITY_THRESHOLD):
         """
         Массовая обработка списка услуг.
         Возвращает список объектов Service.
