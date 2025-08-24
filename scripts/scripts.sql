@@ -2,11 +2,13 @@ CREATE PROCEDURE update_statuses()
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    delete
+
+--убираем старые попытки редактирования
+delete
 from moderate_log
 where updated_at < current_timestamp - interval '1 hour';
 
-
+-- Разблокировка Delay
 update specialists
 set moderate_result = NULL
 where id in (
@@ -20,6 +22,7 @@ group by id
 having count(updated_at) < 10
 );
 
+--перенос подтвержденных анкет
 MERGE INTO specialists s
 USING (
     SELECT *
@@ -29,7 +32,7 @@ USING (
 ON s.id = md.id
 WHEN MATCHED THEN
 UPDATE SET
-    status = 'ACTIVE',
+    status = 'ACTIVE',             -- анкета доступна
     moderate_result = md.status,
     message_to_user = md.message_to_user,
     name = md.name,
@@ -44,6 +47,7 @@ UPDATE SET
     l_work_types = md.l_work_types,
     updated_at = CURRENT_TIMESTAMP;
 
+-- перенос отклоненных и заблокированных анкет, по которым были изменения
 MERGE INTO specialists s
 USING (
     SELECT *
@@ -53,12 +57,12 @@ USING (
 ON s.id = md.id
 WHEN MATCHED THEN
 UPDATE SET
-    status = 'ACTIVE',
+    --status = 'ACTIVE',
     moderate_result = md.status,
     message_to_user = md.message_to_user,
     updated_at = CURRENT_TIMESTAMP;
 
-
+-- перенос заблокированных анкет
 MERGE INTO specialists s
 USING (
     SELECT *
@@ -73,10 +77,9 @@ UPDATE SET
     message_to_user = md.message_to_user,
     updated_at = CURRENT_TIMESTAMP;
 
-
+-- удаленеие обработанных статусов
 delete from moderate_data
 where status in ('APPROVED', 'REJECTED', 'BANNED', 'PERMANENTLY_BANNED', 'DELAY');
-
 
 
 END;
