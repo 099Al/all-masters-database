@@ -16,6 +16,18 @@ from src.database.requests_db import ReqData
 
 
 class ServiceManager(ReqData):
+    """
+    1. Отрабатывает функция, которая ищет категорию и услуги из описания клиента define_services()
+    2. Далее вручную просматриваем списка, по условию is_new = True
+       если все услуги корректны, то ставим is_new = False
+       Аналогично категории.
+    3. Далее вызываем функцию call_update_statuses()
+       Функция переносит одобренные анкеты
+       Далее идет перенос проверенных категорий и услуг
+       После этого удаляем данные из ModerateData
+    """
+
+
     def __init__(self):
         super().__init__()
         #self.session = DataBase().get_session()
@@ -27,15 +39,6 @@ class ServiceManager(ReqData):
             await session.commit()
 
 
-    # def _get_or_create_speciality(self, session, model, defaults=None, **kwargs):
-    #     instance = session.execute(select(model).filter_by(**kwargs)).scalar_one_or_none()
-    #     if instance:
-    #         return instance
-    #     params = {**kwargs, **(defaults or {})}
-    #     instance = model(**params)
-    #     session.add(instance)
-    #     session.commit()
-    #     return instance
 
     async def get_or_create_category(self,
             session,
@@ -180,13 +183,6 @@ class ServiceManager(ReqData):
                 await self.link_services_to_moderate(session, id, services_obj)
 
             await session.commit()
-
-
-
-
-
-
-
 
 
 
