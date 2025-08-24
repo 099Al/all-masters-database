@@ -165,7 +165,7 @@ class ServiceManager(ReqData):
 
             for id, services_text, about in l_specialists:
                 res = define_category_from_specialties(info_categories, info_category_services, services_text, about)
-                category_name = 'TEST' #res["category"]
+                category_name = ["category"]
                 services_name = res["services"]
                 work_types_name = res["work_types"]
 
