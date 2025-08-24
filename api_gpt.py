@@ -42,13 +42,8 @@ def define_category_from_specialties(categories_list: list[str], category_servic
     """
 
 
-    # return prompt
+    #return prompt
 
-    return {
-      "category": "Красота",
-      "services": ["визаж", "макияж"],
-      "work_types": ["укладка волос", "локоны", "прическа", "выезд на дом"]
-    }
 
 
 
