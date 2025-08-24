@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 from sqlite3 import IntegrityError
 
 from sqlalchemy import select, func, text, or_
+from sqlalchemy.orm import selectinload
+
 
 from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
 from src.database.api_gpt import define_category_from_specialties
@@ -83,13 +85,17 @@ class ReqData:
             )
             await session.commit()
 
-    async def update_moderate_data(self, user_id, **data):
-        async with self.session() as session:
-            await session.execute(
-                update(ModerateData)
-                .where(ModerateData.id == user_id)
-                .values(**data)
-            )
+    async def update_moderate_data(self, user_id, session=None, **data):
+        local_session = False
+        if not session:
+            local_session = True
+            session = self.session()
+        await session.execute(
+            update(ModerateData)
+            .where(ModerateData.id == user_id)
+            .values(**data)
+        )
+        if local_session:
             await session.commit()
 
     async def get_cnt_edit_request(self, user_id):
@@ -129,173 +135,12 @@ class ReqData:
                 category_services[category].append(service)
             return dict(category_services)
 
-    async def link_services_to_moderate(self, moderate_id: int, services_obj: list):
-        async with self.session() as session:
-            # Загружаем ModerateData
-            moderate_obj = await session.get(ModerateData, moderate_id)
-
-            if not moderate_obj:
-                return None
-
-            # Привязываем услуги
-            for service in services_obj:
-                if service not in moderate_obj.r_services:
-                    moderate_obj.r_services.append(service)
-
-            await session.commit()
-            return moderate_obj
-
-
-
-
-    async def call_update_statuses(self):
-        async with self.session() as session:
-            await session.execute(text("CALL update_statuses();"))
-            await session.commit()
-
-
-
-
-
-    # def _get_or_create_speciality(self, session, model, defaults=None, **kwargs):
-    #     instance = session.execute(select(model).filter_by(**kwargs)).scalar_one_or_none()
-    #     if instance:
-    #         return instance
-    #     params = {**kwargs, **(defaults or {})}
-    #     instance = model(**params)
-    #     session.add(instance)
-    #     session.commit()
-    #     return instance
-
-    async def get_or_create_category(self,
-            category_name: str,
-            threshold: float = SIMILARITY_THRESHOLD
-    ):
-        """
-        Ищет категорию по смысловой близости (similarity).
-        Если не найдена — создаёт новую.
-        threshold = 0.4 (можно регулировать, 0.3 слабое совпадение, 0.7 почти точное)
-        """
-        async with self.session() as session:  # type: AsyncSession
-            stmt = (
-                select(Category, func.similarity(Category.name, category_name).label("sm"))
-                .order_by(func.similarity(Category.name, category_name).desc())
-                .limit(1)
-            )
-            result = await session.execute(stmt)
-            category = result.first()
-
-            if category and category.sm >= threshold:
-                return category[0]  # Category объект
-
-            # если не нашли — создаём новую категорию
-            new_category = Category(name=category_name, is_new=True)
-            session.add(new_category)
-            try:
-                await session.flush()  # фиксируем INSERT, получаем id
-                return new_category
-            except IntegrityError:
-                await session.rollback()
-                # кто-то параллельно создал категорию → берём её из базы
-                stmt = select(Category).where(Category.name == category_name)
-                result = await session.execute(stmt)
-                return result.scalar_one()
-
-    async def get_or_create_service(
-            self,
-            service_name: str,
-            category_id: int,
-            threshold: float = SIMILARITY_THRESHOLD
-    ):
-        """
-        Ищет услугу по смысловой близости (similarity) внутри категории.
-        """
-        async with self.session() as session:
-            stmt = (
-                select(Service, func.similarity(Service.name, service_name).label("sm"))
-                .where(Service.category_id == category_id)
-                .order_by(func.similarity(Service.name, service_name).desc())
-                .limit(1)
-            )
-            result = await session.execute(stmt)
-            service = result.first()
-
-            if service and service.sm >= threshold:
-                return service[0]  # возвращаем найденную услугу
-
-            # если не нашли — создаём новую
-            new_service = Service(name=service_name, category_id=category_id, is_new=True)
-            session.add(new_service)
-
-            try:
-                await session.flush()  # зафиксировать INSERT, получить id
-                return new_service
-            except IntegrityError:
-                await session.rollback()
-                # кто-то параллельно создал услугу → берём её из базы
-                stmt = select(Service).where(
-                    Service.name == service_name,
-                    Service.category_id == category_id
-                )
-                result = await session.execute(stmt)
-                return result.scalar_one()
-
-    async def get_or_create_services(self, service_names: list[str], category_id: int, threshold: float = SIMILARITY_THRESHOLD):
-        """
-        Массовая обработка списка услуг.
-        Возвращает список объектов Service.
-        """
-        services = []
-        async with self.session() as session:
-            for name in service_names:
-                # используем метод для каждой услуги
-                service = await self.get_or_create_service(name, category_id, threshold)
-                services.append(service)
-            await session.commit()  # сохраняем все изменения
-        return services
-
-    #Метод работает по расписанию
-    # CREATE EXTENSION IF NOT EXISTS pg_trgm;
-    async def define_services(self):
-        res = await self.get_moderate_specialist_info()
-
-        info_categories = await self.get_categories()
-        info_category_services = await self.get_category_services()
-
-        for id, services_text, about in res:
-            res = define_category_from_specialties(info_categories, info_category_services, services_text, about)
-            category_name = res["category"]
-            services_name = res["services"]
-            work_types_name = res["work_types"]
-
-            category_obj = await self.get_or_create_category(category_name)
-            services_obj = await self.get_or_create_services(services_name, category_obj.id)
-
-            await self.update_moderate_data(
-                id,
-                l_services=[service.name for service in services_obj],
-                l_work_types=work_types_name,
-                applied_category=True
-            )
-
-            await self.link_services_to_moderate(id, services_obj)
 
 
 
 
 
 
-
-
-
-
-if __name__ == '__main__':
-    import asyncio
-    req = ReqData()
-    res = asyncio.run(req.define_services())
-
-    print(f" result: {res}")
-    #print(res_work_types)
 
 
 

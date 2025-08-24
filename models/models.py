@@ -157,7 +157,7 @@ class Service(Base):
     r_specialists = relationship("Specialist", secondary="specialist_services", back_populates="r_services")
 
     def __repr__(self):
-        return f"{self.name} - category_id: {self.category_id}"
+        return f"id: {self.id} - name: {self.name} - category_id: {self.category_id}"
 
 
 
