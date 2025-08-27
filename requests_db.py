@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from sqlite3 import IntegrityError
 
-from sqlalchemy import select, func, text, or_
+from sqlalchemy import select, func, text, or_, literal
 from sqlalchemy.orm import selectinload
 
 
@@ -163,7 +163,35 @@ class ReqData:
             res = result.scalars().all()
         return res
 
+    async def find_specialists_by_similarity(
+            self,
+            search_term: str,
+            threshold: float = SIMILARITY_THRESHOLD,
+    ):
+        """
+        Ищет специалистов по схожести search_term с l_services и l_work_types.
+        Возвращает список (Specialist, similarity), отсортированный по убыванию similarity.
+        """
+        async with self.session() as session:
+            l_services_elem = func.jsonb_array_elements_text(Specialist.l_services).table_valued("value")
+            l_work_types_elem = func.jsonb_array_elements_text(Specialist.l_work_types).table_valued("value")
 
+            sm_services = func.max(func.similarity(l_services_elem.c.value, literal(search_term)))
+            sm_work_types = func.max(func.similarity(l_work_types_elem.c.value, literal(search_term)))
+
+            stmt = (
+                select(Specialist)
+                .join(l_services_elem, literal(True), isouter=True)
+                .join(l_work_types_elem, literal(True), isouter=True)
+                .group_by(Specialist.id)
+                .having(func.greatest(sm_services, sm_work_types) >= threshold)
+                .order_by(func.greatest(sm_services, sm_work_types).desc())
+            )
+
+            result = await session.execute(stmt)
+            specialists = result.scalars().all()
+
+            return specialists
 
     #     for id, specialties in res:
     #         # TODO: возможно это делать вручную без api-gpt
