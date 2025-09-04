@@ -160,6 +160,24 @@ class Service(Base):
         return f"id: {self.id} - name: {self.name} - category_id: {self.category_id}"
 
 
+class Users(Base):
+    __tablename__ = 'users'
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    phone: Mapped[str] = mapped_column(String(15), nullable=False)
+    telegram: Mapped[str] = mapped_column(String(50), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+
+
+class UserMessage(Base):
+    __tablename__ = 'user_messages'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    specialist_id: Mapped[int] = mapped_column(ForeignKey('specialists.id'), nullable=False)
+    message: Mapped[str] = mapped_column(String(1000), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    is_valid: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
 
