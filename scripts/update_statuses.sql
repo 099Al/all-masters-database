@@ -39,6 +39,8 @@ UPDATE SET
     name = md.name,
     phone = md.phone,
     telegram = md.telegram,
+    whatsapp = md.whatsapp,
+    instagram = md.instagram,
     email = md.email,
     services = md.services,
     about = md.about,
