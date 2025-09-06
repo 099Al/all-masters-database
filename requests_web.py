@@ -13,6 +13,9 @@ class ReqWeb:
                 select(
                     Specialist.name,
                     Specialist.email,
+                    Specialist.telegram,
+                    Specialist.whatsapp,
+                    Specialist.instagram,
                     Specialist.phone,
                     Specialist.photo_name,
                     Specialist.photo_location,
