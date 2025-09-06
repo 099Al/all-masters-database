@@ -107,7 +107,8 @@ class HistoryUsers(Base):
     email: Mapped[str] = mapped_column(String(50), nullable=True)
     services: Mapped[str] = mapped_column(String(100), nullable=True)
     photo_telegram: Mapped[str] = mapped_column(String(300), nullable=True)
-    photo_local: Mapped[str] = mapped_column(String(300), nullable=True)
+    photo_name: Mapped[str] = mapped_column(String(300), nullable=True)
+    photo_location: Mapped[str] = mapped_column(String(300), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     deleted_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
 
