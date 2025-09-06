@@ -43,7 +43,8 @@ UPDATE SET
     services = md.services,
     about = md.about,
     photo_telegram = md.photo_telegram,
-    photo_local = md.photo_local,
+    photo_name = md.photo_name,
+    photo_location = md.photo_location,
     l_services = md.l_services,
     l_work_types = md.l_work_types,
     updated_at = CURRENT_TIMESTAMP;

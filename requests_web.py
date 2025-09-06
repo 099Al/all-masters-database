@@ -14,7 +14,8 @@ class ReqWeb:
                     Specialist.name,
                     Specialist.email,
                     Specialist.phone,
-                    Specialist.photo_local,
+                    Specialist.photo_name,
+                    Specialist.photo_location,
                     Specialist.photo_telegram,
                     Specialist.services,
                     Specialist.about
