@@ -12,11 +12,12 @@ class ReqWeb:
             result = await session.execute(
                 select(
                     Specialist.name,
-                    Specialist.email,
+                    Specialist.is_available,
                     Specialist.telegram,
                     Specialist.whatsapp,
                     Specialist.instagram,
                     Specialist.phone,
+                    Specialist.email,
                     Specialist.photo_name,
                     Specialist.photo_location,
                     Specialist.photo_telegram,
