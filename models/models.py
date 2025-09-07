@@ -30,7 +30,7 @@ class ModerateStatus(enum.Enum):
     DELETED = "deleted"
     DELAY = "delay"
 
-class UserPhotoType(enum.Enum):
+class SpecialistPhotoType(enum.Enum):
     WORKS = "works"
     CONFIRMATION = "confirmation"
 
@@ -60,6 +60,7 @@ class Specialist(Base):
     l_work_types: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
 
     r_services = relationship("Service", secondary="specialist_services", back_populates="r_specialists")
+    r_photo = relationship("SpecialistPhoto", back_populates="r_specialist")
 
     def __repr__(self):
         return f"Specialist: {self.name} status: {self.status} created_at: {self.created_at}"
@@ -196,11 +197,17 @@ class UserMessage(Base):
     is_valid: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
 
-class UserPhoto(Base):
-    __tablename__ = 'user_photos'
+class SpecialistPhoto(Base):
+    __tablename__ = 'specialist_photos'
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey('specialists.id'), nullable=False)
+    photo_location: Mapped[str] = mapped_column(String(300), nullable=False)
     photo_name: Mapped[str] = mapped_column(String(300), nullable=False)
-    photo_type: Mapped[UserPhotoType] = mapped_column(SqlEnum(UserPhotoType), nullable=False)
+    photo_type: Mapped[SpecialistPhotoType] = mapped_column(SqlEnum(SpecialistPhotoType), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+
+    r_specialist = relationship("Specialist", back_populates="r_photo")
+
+    def __repr__(self):
+        return f"Specialist: {self.user_id} photo: {self.photo_name}"
 
