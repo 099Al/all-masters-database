@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from src.database.connect import DataBase
-from src.database.models import Specialist, UserStatus, UserPhoto
+from src.database.models import Specialist, UserStatus, SpecialistPhoto
 
 
 class ReqWeb:
@@ -33,11 +33,11 @@ class ReqWeb:
         async with self.session() as session:
             result = await session.execute(
                 select(
-                    UserPhoto.photo_name,
-                    UserPhoto.user_id
+                    SpecialistPhoto.photo_name,
+                    SpecialistPhoto.user_id
                 )
-                .where(UserPhoto.id == user_id)
-                .where(UserPhoto.photo_type == type)
+                .where(SpecialistPhoto.id == user_id)
+                .where(SpecialistPhoto.photo_type == type)
             )
             res = result.all()
 
