@@ -30,6 +30,10 @@ class ModerateStatus(enum.Enum):
     DELETED = "deleted"
     DELAY = "delay"
 
+class UserPhotoType(enum.Enum):
+    WORKS = "works"
+    CONFIRMATION = "confirmation"
+
 class Specialist(Base):
     __tablename__ = 'specialists'
 
@@ -191,4 +195,12 @@ class UserMessage(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     is_valid: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
+
+class UserPhoto(Base):
+    __tablename__ = 'user_photos'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
+    photo_name: Mapped[str] = mapped_column(String(300), nullable=False)
+    photo_type: Mapped[UserPhotoType] = mapped_column(SqlEnum(UserPhotoType), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
 
