@@ -29,14 +29,14 @@ class ReqWeb:
 
         return res
 
-    async def get_photo(self, user_id, type):
+    async def get_photo(self, specialist_id, type):
         async with self.session() as session:
             result = await session.execute(
                 select(
                     SpecialistPhoto.photo_name,
                     SpecialistPhoto.user_id
                 )
-                .where(SpecialistPhoto.id == user_id)
+                .where(SpecialistPhoto.specialist_id == specialist_id)
                 .where(SpecialistPhoto.photo_type == type)
             )
             res = result.all()

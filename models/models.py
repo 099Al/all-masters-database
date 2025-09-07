@@ -200,7 +200,7 @@ class UserMessage(Base):
 class SpecialistPhoto(Base):
     __tablename__ = 'specialist_photos'
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey('specialists.id'), nullable=False)
+    specialist_id: Mapped[int] = mapped_column(ForeignKey('specialists.id'), nullable=False)
     photo_location: Mapped[str] = mapped_column(String(300), nullable=False)
     photo_name: Mapped[str] = mapped_column(String(300), nullable=False)
     photo_type: Mapped[SpecialistPhotoType] = mapped_column(SqlEnum(SpecialistPhotoType), nullable=False)
@@ -209,5 +209,5 @@ class SpecialistPhoto(Base):
     r_specialist = relationship("Specialist", back_populates="r_photo")
 
     def __repr__(self):
-        return f"Specialist: {self.user_id} photo: {self.photo_name}"
+        return f"Specialist: {self.specialist_id} photo: {self.photo_name}"
 
