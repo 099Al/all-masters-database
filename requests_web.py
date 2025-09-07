@@ -35,7 +35,7 @@ class ReqWeb:
             result = await session.execute(
                 select(
                     SpecialistPhoto.photo_name,
-                    SpecialistPhoto.user_id
+                    SpecialistPhoto.specialist_id
                 )
                 .where(SpecialistPhoto.specialist_id == specialist_id)
                 .where(SpecialistPhoto.photo_type == type)
