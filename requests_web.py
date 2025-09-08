@@ -11,6 +11,7 @@ class ReqWeb:
         async with self.session() as session:
             result = await session.execute(
                 select(
+                    Specialist.id,
                     Specialist.name,
                     Specialist.is_available,
                     Specialist.telegram,
@@ -34,12 +35,11 @@ class ReqWeb:
         async with self.session() as session:
             result = await session.execute(
                 select(
-                    SpecialistPhoto.photo_name,
-                    SpecialistPhoto.specialist_id
+                    SpecialistPhoto.photo_name
                 )
                 .where(SpecialistPhoto.specialist_id == specialist_id)
                 .where(SpecialistPhoto.photo_type == type)
             )
-            res = result.all()
+            res = result.scalars().all()
 
         return res
