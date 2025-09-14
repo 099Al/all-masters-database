@@ -194,7 +194,7 @@ class UserMessage(Base):
     specialist_id: Mapped[int] = mapped_column(ForeignKey('specialists.id'), nullable=False)
     message: Mapped[str] = mapped_column(String(1000), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
-    is_valid: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    is_valid: Mapped[bool] = mapped_column(Boolean, nullable=True)
 
 
 class SpecialistPhoto(Base):

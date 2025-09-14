@@ -32,3 +32,8 @@ class DataBase:
         async with self.session() as session:
             result = await session.execute(select(table_name))
         return result.scalars().all()
+
+async def get_db(self) -> AsyncSession:
+    async_session = DataBase().get_session()
+    async with async_session() as session:
+        yield session
