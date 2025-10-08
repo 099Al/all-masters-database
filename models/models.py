@@ -184,6 +184,8 @@ class Users(Base):
     telegram: Mapped[str] = mapped_column(String(50), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    is_banned: Mapped[bool] = mapped_column(Boolean, nullable=True, default=False)
+    ban_reason: Mapped[str] = mapped_column(String(300), nullable=True)
 
 
 class UserMessage(Base):
