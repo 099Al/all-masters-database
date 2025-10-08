@@ -1,6 +1,6 @@
-from sqlalchemy import select
+from sqlalchemy import select, func
 from src.database.connect import DataBase
-from src.database.models import Specialist, UserStatus, SpecialistPhoto
+from src.database.models import Specialist, UserStatus, SpecialistPhoto, UserMessage
 
 
 class ReqWeb:
@@ -43,3 +43,17 @@ class ReqWeb:
             res = result.scalars().all()
 
         return res
+
+    async def get_cnt_messages(self, user_id, start_of_hour, end_of_hour):
+        # считаем количество сообщений за текущий час
+        async with self.session() as session:
+            stmt = (
+                select(func.count(UserMessage.id))
+                .where(
+                    UserMessage.user_id == user_id,
+                    UserMessage.created_at >= start_of_hour,
+                    UserMessage.created_at < end_of_hour,
+                )
+            )
+            result = await session.execute(stmt)
+            return result.scalar_one()
