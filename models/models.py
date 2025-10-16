@@ -206,6 +206,7 @@ class SpecialistPhoto(Base):
     photo_location: Mapped[str] = mapped_column(String(300), nullable=False)
     photo_name: Mapped[str] = mapped_column(String(300), nullable=False)
     photo_type: Mapped[SpecialistPhotoType] = mapped_column(SqlEnum(SpecialistPhotoType), nullable=False)
+    photo_telegram_id: Mapped[str] = mapped_column(String(300), nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
 
     r_specialist = relationship("Specialist", back_populates="r_photo")
