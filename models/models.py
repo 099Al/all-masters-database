@@ -215,3 +215,18 @@ class SpecialistPhoto(Base):
     def __repr__(self):
         return f"Specialist: {self.specialist_id} photo: {self.photo_name}"
 
+
+class ModerateSpecialistPhoto(Base):
+    __tablename__ = 'moderate_specialist_photos'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    specialist_id: Mapped[int] = mapped_column(ForeignKey('specialists.id'), nullable=False)
+    photo_location: Mapped[str] = mapped_column(String(300), nullable=False)
+    photo_name: Mapped[str] = mapped_column(String(300), nullable=False)
+    photo_type: Mapped[SpecialistPhotoType] = mapped_column(SqlEnum(SpecialistPhotoType), nullable=False)
+    photo_telegram_id: Mapped[str] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+
+    #r_specialist = relationship("Specialist", back_populates="r_photo")
+
+    def __repr__(self):
+        return f"Specialist: {self.specialist_id} photo: {self.photo_name}"
