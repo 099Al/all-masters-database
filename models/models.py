@@ -33,6 +33,7 @@ class ModerateStatus(enum.Enum):
 class SpecialistPhotoType(enum.Enum):
     WORKS = "works"
     CONFIRMATION = "confirmation"
+    COLLAGE = "collage"
 
 class Specialist(Base):
     __tablename__ = 'specialists'

@@ -21,10 +21,13 @@ class ReqData:
         self.session = DataBase().get_session()
 
 
-    async def save_profile_data(self, user):
+    async def save_profile_data(self, users):
         async with self.session() as session:
             async with session.begin():
-                session.add(user)
+                if isinstance(users, (list, tuple, set)):
+                    session.add_all(users)
+                else:
+                    session.add(users)
 
     async def merge_profile_data(self, user):
         async with self.session() as session:
