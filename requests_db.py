@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from sqlite3 import IntegrityError
 
-from sqlalchemy import select, func, text, or_, literal
+from sqlalchemy import select, func, text, or_, literal, and_
 from sqlalchemy.orm import selectinload
 
 
@@ -10,7 +10,7 @@ from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
 from src.database.api_gpt import define_category_from_specialties
 from src.database.connect import DataBase
 from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service, \
-    SpecialistService, UserStatus, Users
+    SpecialistService, UserStatus, Users, ModerateSpecialistPhoto, SpecialistPhotoType
 from sqlalchemy import update
 
 
@@ -60,6 +60,17 @@ class ReqData:
                 .where(ModerateData.id == user_id)
             )
             res = result.scalars().first()
+
+        return res
+
+
+    async def get_moderate_collage(self, user_id):
+        async with self.session() as session:
+            result = await session.execute(
+                select(ModerateSpecialistPhoto.photo_location, ModerateSpecialistPhoto.photo_name)
+                .where(and_(ModerateSpecialistPhoto.specialist_id == user_id, ModerateSpecialistPhoto.photo_type == SpecialistPhotoType.COLLAGE))
+            )
+            res = result.first()
 
         return res
 
