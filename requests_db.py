@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from sqlite3 import IntegrityError
 
-from sqlalchemy import select, func, text, or_, literal, and_
+from sqlalchemy import select, func, text, or_, literal, and_, delete
 from sqlalchemy.orm import selectinload
 
 
@@ -10,10 +10,8 @@ from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
 from src.database.api_gpt import define_category_from_specialties
 from src.database.connect import DataBase
 from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service, \
-    SpecialistService, UserStatus, Users, ModerateSpecialistPhoto, SpecialistPhotoType
+    SpecialistService, UserStatus, Users, ModerateSpecialistPhoto, SpecialistPhotoType, SpecialistPhoto
 from sqlalchemy import update
-
-
 
 
 class ReqData:
@@ -53,6 +51,8 @@ class ReqData:
             res = result.scalars().first()
         return res
 
+
+
     async def get_moderate_data(self, user_id):
         async with self.session() as session:
             result = await session.execute(
@@ -64,15 +64,25 @@ class ReqData:
         return res
 
 
-    async def get_moderate_collage(self, user_id):
+    async def get_moderate_photos(self, user_id, type):
         async with self.session() as session:
             result = await session.execute(
                 select(ModerateSpecialistPhoto.photo_location, ModerateSpecialistPhoto.photo_name)
-                .where(and_(ModerateSpecialistPhoto.specialist_id == user_id, ModerateSpecialistPhoto.photo_type == SpecialistPhotoType.COLLAGE))
+                .where(and_(ModerateSpecialistPhoto.specialist_id == user_id, ModerateSpecialistPhoto.photo_type == type))
             )
-            res = result.first()
+            res = result.all()
 
         return res
+
+    async def delete_moderate_work_photo(self, user_id, type):
+        async with self.session() as session:
+            await session.execute(
+                delete(ModerateSpecialistPhoto)
+                .where(and_(ModerateSpecialistPhoto.specialist_id == user_id, ModerateSpecialistPhoto.photo_type == type))
+            )
+            await session.commit()
+
+
 
     async def get_moderate_specialist_info(self):
         async with self.session() as session:
@@ -99,6 +109,15 @@ class ReqData:
 
         return res
 
+    async def get_specialist_photos(self, user_id, type):
+        async with self.session() as session:
+            result = await session.execute(
+                select(SpecialistPhoto.photo_location, SpecialistPhoto.photo_name)
+                .where(and_(SpecialistPhoto.specialist_id == user_id, SpecialistPhoto.photo_type == type))
+            )
+            res = result.all()
+
+        return res
 
     async def update_specialist(self, user_id, **data):
         async with self.session() as session:
