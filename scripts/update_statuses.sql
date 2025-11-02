@@ -63,7 +63,7 @@ where specialist_id in (
 
 
 INSERT into specialist_photos(specialist_id, photo_telegram_id, photo_name, photo_location, photo_type, created_at)
- SELECT mdp.specialist_id, mdp.photo_telegram_id, mdp.photo_name, mdp.photo_location, mdp.photo_type, current_timestamp
+ SELECT mdp.specialist_id, mdp.photo_telegram_id, mdp.photo_name, replace(mdp.photo_location, '/new_', '/'), mdp.photo_type, current_timestamp
     FROM moderate_data m
     JOIN moderate_specialist_photos mdp on mdp.specialist_id = m.id
     WHERE status = 'APPROVED'
