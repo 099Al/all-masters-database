@@ -1,3 +1,6 @@
+import logging
+import os
+import shutil
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from sqlite3 import IntegrityError
@@ -5,15 +8,18 @@ from sqlite3 import IntegrityError
 from sqlalchemy import select, func, text, or_
 from sqlalchemy.orm import selectinload
 
-
+from src.config import settings
 from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
 from src.database.api_gpt import define_category_from_specialties
 from src.database.connect import DataBase
-from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service
+from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service, \
+    SpecialistPhotoType
 from sqlalchemy import update
 
 from src.database.requests_db import ReqData
 
+
+logger = logging.getLogger(__name__)
 
 class ServiceManager(ReqData):
     """
@@ -35,9 +41,46 @@ class ServiceManager(ReqData):
 
     async def call_update_statuses(self):
         async with self.session() as session:
-            await session.execute(text("CALL update_statuses();"))
-            await session.commit()
+            try:
+                req = ReqData()
+                res_photo = await req.get_moderate_photos_approved()
+                res_works_photos = await req.get_moderate_works_photo_approved(type=SpecialistPhotoType.WORKS)
+                res_collage_photos = await req.get_moderate_works_photo_approved(type=SpecialistPhotoType.COLLAGE)
 
+                if res_photo:
+                    for ph in res_photo:
+                        ph_location = ph.photo_location
+                        ph_name = ph.photo_name
+                        ph_path = f"{settings.path_root}/{ph_location}/{ph_name}"
+                        if os.path.exists(ph_path):
+                            shutil.move(ph_path, f"{settings.path_root}/{settings.AVATAR_IMG}/{ph_name}")
+
+
+                if res_works_photos:
+                    for ph in res_works_photos:
+                        ph_location = ph.photo_location
+                        ph_name = ph.photo_name
+                        ph_path = f"{settings.path_root}/{ph_location}/{ph_name}"
+                        if os.path.exists(ph_path):
+                            shutil.move(ph_path, f"{settings.path_root}/{settings.WORKS_IMG}/{ph_name}")
+
+
+                if res_collage_photos:
+                    for ph in res_collage_photos:
+                        ph_location = ph.photo_location
+                        ph_name = ph.photo_name
+                        ph_path = f"{settings.path_root}/{ph_location}/{ph_name}"
+                        if os.path.exists(ph_path):
+                            shutil.move(ph_path, f"{settings.path_root}/{settings.COLLAGE_IMG}/{ph_name}")
+
+                await session.execute(text("CALL public.update_statuses();"))
+
+                #TODO: move photos location
+                #and update its in tables
+
+                await session.commit()
+            except Exception as e:
+                logger.error(f"Error in call_update_statuses. {e}")
 
 
     async def get_or_create_category(self,
@@ -190,7 +233,9 @@ class ServiceManager(ReqData):
 if __name__ == '__main__':
     import asyncio
     req = ServiceManager()
-    res = asyncio.run(req.define_services())
+    #res = asyncio.run(req.define_services())
+
+    res = asyncio.run(req.call_update_statuses())
 
     print(f" result: {res}")
     #print(res_work_types)

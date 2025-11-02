@@ -63,6 +63,42 @@ class ReqData:
 
         return res
 
+    async def get_moderate_photos_approved(self):
+        async with self.session() as session:
+            result = await session.execute(
+                select(ModerateData.photo_location, ModerateData.photo_name)
+                .where(
+                    and_(ModerateData.status == ModerateStatus.APPROVED,
+                        ModerateData.applied_category == True
+                         )
+                )
+            )
+            res = result.all()
+
+        return res
+
+    async def get_moderate_works_photo_approved(self, type):
+        async with self.session() as session:
+            result = await session.execute(
+                select(
+                    ModerateSpecialistPhoto.photo_location,
+                    ModerateSpecialistPhoto.photo_name
+                )
+                .join(
+                    ModerateData,
+                    ModerateData.id == ModerateSpecialistPhoto.specialist_id  # adjust join key if needed
+                )
+                .where(
+                    and_(
+                        ModerateData.status == ModerateStatus.APPROVED,
+                        ModerateData.applied_category.is_(True),
+                        ModerateSpecialistPhoto.photo_type == type
+                    )
+                )
+            )
+
+            res = result.all()  # not .scalars(), since we select multiple columns
+        return res
 
     async def get_moderate_photos(self, user_id, type):
         async with self.session() as session:

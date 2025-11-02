@@ -1,4 +1,4 @@
-CREATE PROCEDURE update_statuses()
+CREATE OR REPLACE PROCEDURE update_statuses()
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -46,10 +46,30 @@ UPDATE SET
     about = md.about,
     photo_telegram = md.photo_telegram,
     photo_name = md.photo_name,
-    photo_location = md.photo_location,
+    photo_location = replace(md.photo_location, '/new_', '/'), -- /new/ -> /md.photo_location,
     l_services = md.l_services,
     l_work_types = md.l_work_types,
     updated_at = CURRENT_TIMESTAMP;
+
+
+delete from specialist_photos s
+where specialist_id in (
+    SELECT distinct mdp.specialist_id
+    FROM moderate_data m
+    JOIN moderate_specialist_photos mdp on mdp.specialist_id = m.id
+    WHERE status = 'APPROVED'
+    and applied_category = true
+);
+
+
+INSERT into specialist_photos(specialist_id, photo_telegram_id, photo_name, photo_location, photo_type, created_at)
+ SELECT mdp.specialist_id, mdp.photo_telegram_id, mdp.photo_name, mdp.photo_location, mdp.photo_type, current_timestamp
+    FROM moderate_data m
+    JOIN moderate_specialist_photos mdp on mdp.specialist_id = m.id
+    WHERE status = 'APPROVED'
+    and applied_category = true;
+
+
 
 -- перенос отклоненных и заблокированных анкет, по которым были изменения
 MERGE INTO specialists s
@@ -101,13 +121,34 @@ where ms.specialist_id = t.specialist_id
   and ms.service_id = t.service_id;
 
 
+--перенос фото
+
+
+
 -- удаленеие обработанных статусов
+delete from moderate_specialist_photos
+where specialist_id in (
+    select id
+    from moderate_data s
+    where status = 'APPROVED'
+    and applied_category = true
+);
+
+delete from moderate_log
+where user_id in (
+    select id
+    from moderate_data s
+    where status = 'APPROVED'
+    and applied_category = true
+);
+
 delete from moderate_data
-where status ('REJECTED', 'BANNED', 'PERMANENTLY_BANNED', 'DELAY');
+where status in ('REJECTED', 'BANNED', 'PERMANENTLY_BANNED', 'DELAY');
 
 delete from moderate_data
 where status  = 'APPROVED'
 and applied_category = true;
+
 
 
 END;
