@@ -272,13 +272,15 @@ class ReqData:
             return specialists
 
     async def fetch_pending_user_messages(self, limit: int = 1000):
-        async with self.session_factory() as session:
+        async with self.session() as session:
             stmt = (
                 select(
                     UserMessage.id,
                     UserMessage.specialist_id,
                     UserMessage.message,
+                    Users.telegram,
                 )
+                .join(Users, Users.id == UserMessage.user_id)
                 .where(
                     UserMessage.sent_at.is_(None),
                     UserMessage.is_valid.is_(True),
@@ -292,7 +294,7 @@ class ReqData:
     async def mark_messages_sent(self, ids: list[int]) -> int:
         if not ids:
             return 0
-        async with self.session_factory() as session:
+        async with self.session() as session:
             stmt = (
                 update(UserMessage)
                 .where(UserMessage.id.in_(ids))
