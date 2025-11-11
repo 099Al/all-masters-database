@@ -10,7 +10,7 @@ from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
 from src.database.api_gpt import define_category_from_specialties
 from src.database.connect import DataBase
 from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service, \
-    SpecialistService, UserStatus, Users, ModerateSpecialistPhoto, SpecialistPhotoType, SpecialistPhoto
+    SpecialistService, UserStatus, Users, ModerateSpecialistPhoto, SpecialistPhotoType, SpecialistPhoto, UserMessage
 from sqlalchemy import update
 
 
@@ -270,6 +270,38 @@ class ReqData:
             specialists = result.scalars().all()
 
             return specialists
+
+    async def fetch_pending_user_messages(self, limit: int = 1000):
+        async with self.session_factory() as session:
+            stmt = (
+                select(
+                    UserMessage.id,
+                    UserMessage.specialist_id,
+                    UserMessage.message,
+                )
+                .where(
+                    UserMessage.sent_at.is_(None),
+                    UserMessage.is_valid.is_(True),
+                )
+                .order_by(UserMessage.id)
+                .limit(limit)
+            )
+            res = await session.execute(stmt)
+            return res.all()
+
+    async def mark_messages_sent(self, ids: list[int]) -> int:
+        if not ids:
+            return 0
+        async with self.session_factory() as session:
+            stmt = (
+                update(UserMessage)
+                .where(UserMessage.id.in_(ids))
+                .values(sent_at=func.now())
+                .returning(UserMessage.id)
+            )
+            res = await session.execute(stmt)
+            await session.commit()
+            return len(res.fetchall())
 
     #     for id, specialties in res:
     #         # TODO: возможно это делать вручную без api-gpt
