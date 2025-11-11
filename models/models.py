@@ -198,6 +198,7 @@ class UserMessage(Base):
     message: Mapped[str] = mapped_column(String(1000), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     is_valid: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    sent_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
 
 
 class SpecialistPhoto(Base):
