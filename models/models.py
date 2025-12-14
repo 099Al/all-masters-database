@@ -1,17 +1,15 @@
 from typing import List
 
 from sqlalchemy import (
-    String, Float, Integer, Text, Date, DateTime, Boolean,
-    ForeignKey,  Table, Column,
-    CheckConstraint, Enum, UniqueConstraint
+    String, Integer, Text, DateTime, Boolean,
+    ForeignKey, Column,
+    UniqueConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
-import os
 import enum
 from sqlalchemy import Enum as SqlEnum
 
-from src.config_paramaters import UTC_PLUS_5
 from src.database.models.base import Base
 
 class UserStatus(enum.Enum):

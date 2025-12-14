@@ -1,7 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from src.config import settings
-from src.database.models import *
+from src.database.models import Base
+
 
 class DataBase:
 

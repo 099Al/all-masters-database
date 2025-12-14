@@ -1,8 +1,6 @@
 import logging
 import os
 import shutil
-from collections import defaultdict
-from datetime import datetime, timedelta, timezone
 from sqlite3 import IntegrityError
 
 from sqlalchemy import select, func, text, or_
@@ -14,7 +12,6 @@ from src.database.api_gpt import define_category_from_specialties
 from src.database.connect import DataBase
 from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service, \
     SpecialistPhotoType
-from sqlalchemy import update
 
 from src.database.requests_db import ReqData
 
@@ -208,7 +205,7 @@ class ServiceManager(ReqData):
 
             for id, services_text, about in l_specialists:
                 res = define_category_from_specialties(info_categories, info_category_services, services_text, about)
-                category_name = ["category"]
+                category_name = res["category"]
                 services_name = res["services"]
                 work_types_name = res["work_types"]
 

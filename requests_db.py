@@ -1,13 +1,9 @@
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
-from sqlite3 import IntegrityError
+from datetime import datetime, timedelta
 
-from sqlalchemy import select, func, text, or_, literal, and_, delete
-from sqlalchemy.orm import selectinload
-
+from sqlalchemy import select, func, or_, literal, and_, delete
 
 from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
-from src.database.api_gpt import define_category_from_specialties
 from src.database.connect import DataBase
 from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service, \
     SpecialistService, UserStatus, Users, ModerateSpecialistPhoto, SpecialistPhotoType, SpecialistPhoto, UserMessage
