@@ -73,6 +73,19 @@ class ReqData:
 
         return res
 
+    async def save_moderate_photo(self, moderate_collage):
+        async with self.session() as session:
+            async with session.begin():
+                await session.execute(
+                    delete(ModerateSpecialistPhoto).where(
+                        ModerateSpecialistPhoto.specialist_id == moderate_collage.specialist_id,
+                        ModerateSpecialistPhoto.photo_type == moderate_collage.photo_type,
+                    )
+                )
+                session.add(moderate_collage)
+
+
+
     async def get_moderate_works_photo_approved(self, type):
         async with self.session() as session:
             result = await session.execute(
