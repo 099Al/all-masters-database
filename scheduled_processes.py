@@ -2,15 +2,15 @@ import logging
 import os
 import shutil
 from sqlite3 import IntegrityError
+import json
 
-from sqlalchemy import select, func, text, or_
+from sqlalchemy import select, func, text
 from sqlalchemy.orm import selectinload
 
 from src.config import settings
-from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
-from src.database.api_gpt import define_category_from_specialties
-from src.database.connect import DataBase
-from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service, \
+from src.config_paramaters import SIMILARITY_THRESHOLD
+from src.ai.api_gpt import ai_define_category_from_specialties
+from src.database.models import ModerateData, Category, Service, \
     SpecialistPhotoType
 
 from src.database.requests_db import ReqData
@@ -80,7 +80,7 @@ class ServiceManager(ReqData):
                 logger.error(f"Error in call_update_statuses. {e}")
 
 
-    async def get_or_create_category(self,
+    async def _get_or_create_category(self,
             session,
             category_name: str,
             threshold: float = SIMILARITY_THRESHOLD
@@ -115,7 +115,7 @@ class ServiceManager(ReqData):
             return result.scalar_one()
 
 
-    async def get_or_create_service(
+    async def _get_or_create_service(
             self,
             session,
             service_name: str,
@@ -155,7 +155,7 @@ class ServiceManager(ReqData):
             return result.scalar_one()
 
 
-    async def get_or_create_services(self,
+    async def _get_or_create_services(self,
                                      session,
                                      service_names: list[str],
                                      category_id: int,
@@ -168,13 +168,13 @@ class ServiceManager(ReqData):
         services = []
         for name in service_names:
             # используем метод для каждой услуги
-            service = await self.get_or_create_service(session, name, category_id, threshold)
+            service = await self._get_or_create_service(session, name, category_id, threshold)
             services.append(service)
         return services
 
 
 
-    async def link_services_to_moderate(self, session, moderate_id: int, services_obj: list):
+    async def _link_services_to_moderate(self, session, moderate_id: int, services_obj: list):
         moderate_obj = await session.get(
             ModerateData,
             moderate_id,
@@ -198,19 +198,21 @@ class ServiceManager(ReqData):
     async def define_services(self):
         l_specialists = await self.get_moderate_specialist_info()
 
-        info_categories = await self.get_categories()
-        info_category_services = await self.get_category_services()
+        info_exists_categories = await self.get_categories()
+        info_exists_category_services = await self.get_category_services()
 
         async with self.session() as session:
 
             for id, services_text, about in l_specialists:
-                res = define_category_from_specialties(info_categories, info_category_services, services_text, about)
+                res_str = ai_define_category_from_specialties(info_exists_categories, info_exists_category_services, services_text, about)
+                res = json.loads(res_str)
+                print(res)
                 category_name = res["category"]
                 services_name = res["services"]
                 work_types_name = res["work_types"]
 
-                category_obj = await self.get_or_create_category(session, category_name)
-                services_obj = await self.get_or_create_services(session, services_name, category_obj.id)
+                category_obj = await self._get_or_create_category(session, category_name)
+                services_obj = await self._get_or_create_services(session, services_name, category_obj.id)
 
                 await self.update_moderate_data(
                     id,
@@ -220,7 +222,7 @@ class ServiceManager(ReqData):
                     applied_category=True
                 )
 
-                await self.link_services_to_moderate(session, id, services_obj)
+                await self._link_services_to_moderate(session, id, services_obj)
 
             await session.commit()
 
@@ -230,9 +232,9 @@ class ServiceManager(ReqData):
 if __name__ == '__main__':
     import asyncio
     req = ServiceManager()
-    #res = asyncio.run(req.define_services())
+    res = asyncio.run(req.define_services())
 
-    res = asyncio.run(req.call_update_statuses())
+    #res = asyncio.run(req.call_update_statuses())
 
     print(f" result: {res}")
     #print(res_work_types)
