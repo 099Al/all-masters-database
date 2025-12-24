@@ -298,11 +298,11 @@ class ReqData:
 
     async def set_validation_results(self, results: dict[int, tuple[bool, str]]):
         async with self.session() as session:
-            for msg_id, is_valid in results.items():
+            for msg_id, (is_valid, reason) in results.items():
                 await session.execute(
                     update(UserMessage)
                     .where(UserMessage.id == msg_id)
-                    .values(is_valid=is_valid, validate_dt=func.now(), ban_reason=None)
+                    .values(is_valid=is_valid, validate_dt=func.now(), ban_reason=reason)
                 )
             await session.commit()
 
