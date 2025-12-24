@@ -232,3 +232,12 @@ class ModerateSpecialistPhoto(Base):
 
     def __repr__(self):
         return f"Specialist: {self.specialist_id} photo: {self.photo_name}"
+
+class Config(Base):
+    __tablename__ = 'config'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key: Mapped[str] = mapped_column(String(100), nullable=False)
+    value: Mapped[str] = mapped_column(String(1000), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
