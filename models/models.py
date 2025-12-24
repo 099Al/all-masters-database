@@ -196,6 +196,8 @@ class UserMessage(Base):
     message: Mapped[str] = mapped_column(String(1000), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=False)
     is_valid: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    ban_reason: Mapped[str] = mapped_column(String(300), nullable=True)
+    validate_dt: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     sent_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
 
 

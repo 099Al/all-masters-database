@@ -280,6 +280,43 @@ class ReqData:
 
             return specialists
 
+    async def get_messages_for_validate(self):
+        async with self.session() as session:
+            stmt = (
+                select(
+                    UserMessage.id,
+                    UserMessage.user_id,
+                    UserMessage.message,
+                )
+                .where(
+                    UserMessage.is_valid.is_(None),
+                )
+                .order_by(UserMessage.id)
+            )
+            res = await session.execute(stmt)
+            return res.all()
+
+    async def set_validation_results(self, results: dict[int, tuple[bool, str]]):
+        async with self.session() as session:
+            for msg_id, is_valid in results.items():
+                await session.execute(
+                    update(UserMessage)
+                    .where(UserMessage.id == msg_id)
+                    .values(is_valid=is_valid, validate_dt=func.now(), ban_reason=None)
+                )
+            await session.commit()
+
+    async def set_ban_reason(self, results: dict[int, bool]):
+        async with self.session() as session:
+            for user_id, reason in results.items():
+                await session.execute(
+                    update(Users)
+                    .where(Users.id == user_id)
+                    .values(is_banned=True, ban_reason=reason)
+                )
+            await session.commit()
+
+
     async def fetch_pending_user_messages(self, limit: int = 1000):
         async with self.session() as session:
             stmt = (
