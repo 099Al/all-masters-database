@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import select, func, or_, literal, and_, delete
 
-from src.config_paramaters import UTC_PLUS_5, SIMILARITY_THRESHOLD
+from src.config_paramaters import configs
 from src.database.connect import DataBase
 from src.database.models import Specialist, ModerateData, ModerateLog, ModerateStatus, Category, Service, \
     SpecialistService, UserStatus, Users, ModerateSpecialistPhoto, SpecialistPhotoType, SpecialistPhoto, UserMessage
@@ -193,7 +193,7 @@ class ReqData:
                 .select_from(ModerateLog)
                 .where(
                     ModerateLog.user_id == user_id,
-                    ModerateLog.updated_at >= (datetime.now(UTC_PLUS_5) - timedelta(hours=1)).replace(tzinfo=None)
+                    ModerateLog.updated_at >= (datetime.now(configs.UTC_PLUS_5) - timedelta(hours=1)).replace(tzinfo=None)
                 )
             )
             count = result.scalar_one()
@@ -253,7 +253,7 @@ class ReqData:
     async def find_specialists_by_similarity(
             self,
             search_term: str,
-            threshold: float = SIMILARITY_THRESHOLD,
+            threshold: float = configs.SIMILARITY_THRESHOLD,
     ):
         """
         Ищет специалистов по схожести search_term с l_services и l_work_types.
