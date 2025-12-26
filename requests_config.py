@@ -1,26 +1,39 @@
-from collections import defaultdict
-from datetime import datetime, timedelta
 from sqlalchemy import select
-from src.database.connect import DataBase
+
 from src.database.models import Config
 
 
+from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+class DataBaseSync:
+    def __init__(self, db_url_async: str, db_url_sync: str):
+        self.async_engine = create_async_engine(db_url_async, echo=False)
+        self.sync_engine = create_engine(db_url_sync, echo=False)
+
+    def get_async_session(self):
+        return async_sessionmaker(bind=self.async_engine, class_=AsyncSession)
+
+    def get_sync_session(self):
+        return sessionmaker(bind=self.sync_engine, expire_on_commit=False)
+
+
+from sqlalchemy import select
+
 class ReqConf:
     def __init__(self):
-        self.session = DataBase().get_session()
+        self.session = DataBaseSync(...).get_sync_session()  # sessionmaker (sync)
 
+    def get_params(self):
+        with self.session() as session:
+            result = session.execute(select(Config))
+            return result.scalars().all()
 
-    async def get_params(self):
-        async with self.session() as session:
-            result = await session.execute(select(Config))
-            res = result.scalars().all()
-        return res
-
-    async def get_param_by_key(self, key):
-        async with self.session() as session:
-            result = await session.execute(
-                select(Config.value)
-                .where(Config.key == key)
+    def get_param_by_key(self, key):
+        with self.session() as session:
+            result = session.execute(
+                select(Config.value).where(Config.key == key)
             )
-            res = result.scalars().all()
-        return res
+            return result.scalar_one_or_none()
+
