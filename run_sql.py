@@ -1,15 +1,16 @@
 import asyncio
+import logging
 from pathlib import Path
 from sqlalchemy.ext.asyncio import create_async_engine
 from src.config import settings
-
+from sqlalchemy import text
 
 
 DB_URL = settings.connect_url
 SQL_FOLDER = Path("sql")
 PROC_SUFFIX = "_proc.sql"
 
-
+logger = logging.getLogger(__name__)
 
 async def run_sql_folder(engine, folder: Path):
     files = sorted(p for p in folder.iterdir() if p.suffix == ".sql")
@@ -29,7 +30,11 @@ async def run_sql_folder(engine, folder: Path):
 
             if file.name.endswith(PROC_SUFFIX):
                 print(f"run procedure ->")
-                #await conn.execute(text(stmt))
+                try:
+                    await conn.execute(text(stmt))
+                except Exception as e:
+                    print(e)
+                    logger.error(f"Error in run script procedure: {e}")
             else:
                 statements = [
                     stmt.strip()
@@ -39,9 +44,11 @@ async def run_sql_folder(engine, folder: Path):
 
                 for i, stmt in enumerate(statements, 1):
                     print(f"run statement {i}")
-                    print(stmt)
-                    #await conn.execute(text(stmt))
-
+                    try:
+                        await conn.execute(text(stmt))
+                    except Exception as e:
+                        print(e)
+                        logger.error(f"Error in run script: {e}")
     print("\n All SQL scripts executed successfully")
 
 # -----------------------
