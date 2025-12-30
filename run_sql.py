@@ -10,6 +10,8 @@ DB_URL = settings.connect_url
 SQL_FOLDER = Path("sql")
 PROC_SUFFIX = "_proc.sql"
 
+import src.log_settings
+import logging
 logger = logging.getLogger(__name__)
 
 async def run_sql_folder(engine, folder: Path):
@@ -17,19 +19,23 @@ async def run_sql_folder(engine, folder: Path):
 
     if not files:
         print(f"No .sql files found in {folder}")
+        logger.error(f"No .sql files found in {folder}")
         return
 
     async with engine.begin() as conn:
         for file in files:
+            logger.info(f"Running file: {file.name}")
             print(f"\n▶ Running file: {file.name}")
 
             sql = file.read_text(encoding="utf-8")
 
             print(file)
+            logger.info(f"File content: {sql}")
 
 
             if file.name.endswith(PROC_SUFFIX):
                 print(f"run procedure ->")
+                logger.info(f"run procedure ->")
                 try:
                     await conn.execute(text(stmt))
                 except Exception as e:
@@ -44,6 +50,7 @@ async def run_sql_folder(engine, folder: Path):
 
                 for i, stmt in enumerate(statements, 1):
                     print(f"run statement {i}")
+                    logger.info(f"run statement {i}")
                     try:
                         await conn.execute(text(stmt))
                     except Exception as e:
