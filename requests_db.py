@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from sqlalchemy import select, func, or_, literal, and_, delete
+from sqlalchemy import select, func, or_, literal, and_, delete, text
 
 from src.config_paramaters import configs
 from src.database.connect import DataBase
@@ -14,6 +14,10 @@ class ReqData:
     def __init__(self):
         self.session = DataBase().get_session()
 
+    async def get_db_version(self) -> str:
+        async with self.session() as session:
+            result = await session.execute(text("SELECT version()"))
+            return result.scalar_one()
 
     async def save_profile_data(self, users):
         async with self.session() as session:
