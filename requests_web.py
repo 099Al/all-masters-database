@@ -1,13 +1,13 @@
 from sqlalchemy import select, func
 from src.database.connect import DataBase
-from src.database.models import Specialist, UserStatus, SpecialistPhoto, UserMessage
+from src.database.models import Specialist, UserStatus, SpecialistPhoto, UserMessage, SpecialistService
 
 
 class ReqWeb:
     def __init__(self):
         self.session = DataBase().get_session()
 
-    async def get_active_specialists_data(self):
+    async def get_active_specialists_data(self, service_id: int):
         async with self.session() as session:
             result = await session.execute(
                 select(
@@ -25,7 +25,9 @@ class ReqWeb:
                     Specialist.services,
                     Specialist.about
                 )
+                .join(SpecialistService, SpecialistService.specialist_id == Specialist.id)
                 .where(Specialist.status == UserStatus.ACTIVE)
+                .where(SpecialistService.service_id == service_id)
             )
             res = result.all()
 
