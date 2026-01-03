@@ -88,6 +88,7 @@ class ModerateData(Base):
     ban_reason: Mapped[str] = mapped_column(String(300), nullable=True)
     message_to_admin: Mapped[str] = mapped_column(String(700), nullable=True)
     l_services: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
+    l_service_ids: Mapped[List[int]] = mapped_column(JSONB, nullable=True)
     l_work_types: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
 
     r_services = relationship("Service", secondary="moderatedata_services", backref="r_moderate_data")
