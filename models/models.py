@@ -56,6 +56,7 @@ class Specialist(Base):
     updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     ban_reason: Mapped[str] = mapped_column(String(300), nullable=True)
     l_services: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
+    l_service_ids: Mapped[List[int]] = mapped_column(JSONB, nullable=True)
     l_work_types: Mapped[List[str]] = mapped_column(JSONB, nullable=True)
 
     r_services = relationship("Service", secondary="specialist_services", back_populates="r_specialists")
